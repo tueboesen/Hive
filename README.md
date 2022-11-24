@@ -5,10 +5,10 @@ This project is my attempt at coding up a simple neural network trained to play 
 ## Neural network symmetries
 The game contains certain symmetries that the neural network should incorporate.
 
-The nn should be 60 degree rotational invariant.
-The nn should be translational invariant.
-The nn should be permutation equivariant. 
-The nn should be mirror invariant.
+- The nn should be 60 degree rotational invariant.
+- The nn should be translational invariant.
+- The nn should be permutation equivariant. 
+- The nn should be mirror invariant.
 
 ## Neural network structure
 Overall the neural network should try to predict the best possible move in any given situation, and give an estimate of how likely it is to be winning the game.
