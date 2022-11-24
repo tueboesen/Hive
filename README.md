@@ -17,8 +17,9 @@ There should be some markov tree decision incorporated somehow.
 ## Representation of pieces
 
 ### Queen
-Features: Type
-Moves: 6
+Input = (x,y,Type,InPlay) 
+
+Output moves = (6)
 
 ### Beetle
 Features: Type, Level
