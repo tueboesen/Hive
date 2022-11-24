@@ -22,17 +22,21 @@ Input = (x,y,Type,InPlay)
 Output moves = (6)
 
 ### Beetle
-Features: Type, Level
-Moves: 6
+Input = (x,y,Type,InPlay,Level) 
+
+Output moves = (6)
 
 ### Grasshopper
-Features: Type
-Moves: 6
+Input = (x,y,Type,InPlay) 
+
+Output moves = (6)
 
 ### Spider
-Features: Type
-Moves: All places within 3 spaces = 37
+Input = (x,y,Type,InPlay) 
+
+Output moves = (All places within 3 spaces = 37)
 
 ### Ant
-Features: Type
-Moves: 6 moves around each other piece = 21*6=126
+Input = (x,y,Type,InPlay) 
+
+Output moves = (6 moves around each other piece = 21*6=126)
