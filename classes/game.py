@@ -71,7 +71,7 @@ class Game:
 
 
     def handle_events(self,piece_index,hex_index):
-        if self.mode=="man_vs_cpu":
+        if self.mode=="man_vs_cpu" or self.mode=="man_vs_man":
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()

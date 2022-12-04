@@ -46,7 +46,7 @@ def draw(self):
         gfxdraw.aapolygon(self.ui_screen, self.ui_xy_inner(), self.ui_color_inner_edge) # Inner hexagon edge
 
         if self.symbol() is not None:
-            text = pygame.font.SysFont("Sans", 18).render(f"{self.symbol() if self.pieces_under==0 else self.symbol()+'+'+str(self.pieces_under)}", True, self.ui_color_text, self.ui_color_text_bg)
+            text = pygame.font.SysFont("Sans", 18).render(f"{self.symbol() if self.pieces_under==0 else self.symbol()+'+'+str(self.pieces_under)}", True, self.ui_color_text) #, self.ui_color_text_bg
             text_rect = text.get_rect()
             text_rect.center = (self.ui_x(), self.ui_y())
             self.ui_screen.blit(text, text_rect)

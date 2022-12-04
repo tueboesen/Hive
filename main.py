@@ -14,14 +14,14 @@ def main(args):
 
     if MODE=="cpu_vs_cpu":
         arena.championship()
-    if MODE=="man_vs_cpu":
+    if MODE=="man_vs_cpu" or MODE=='man_vs_man':
         arena.single_game()
 
 
 if __name__ == "__main__":
     BOARD_SIZE = 22
     ITERMAX = 500
-    MODE = "man_vs_cpu"
+    MODE = "man_vs_man"
     GAME_COUNT, N_GAMES = 0, 200
 
     if MODE == "man_vs_cpu":

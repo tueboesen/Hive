@@ -74,7 +74,6 @@ class Hexes:
         elif self.hex_selected is None: # Select hex
             self.hexes[idx].color_fill = self.color_selected
             self.hex_selected = idx
-            # self.highlight_hex() #TODO we somehow need the pieces information here, so we can get the move information in.
             self.update_board = True
 
     def hover_hex(self, idx: int):
@@ -155,7 +154,7 @@ class Hexagon(Hexes):
         gfxdraw.aapolygon(self.screen, self.xy_inner, self.color_inner_edge) # Inner hexagon edge
 
         if self.symbol is not None:
-            text = self.node_font.render(self.symbol, True, self.color_text, self.color_text_bg)
+            text = self.node_font.render(self.symbol, True, self.color_text) #, self.color_text_bg
             text_rect = text.get_rect()
             text_rect.center = (self.x, self.y)
             self.screen.blit(text, text_rect)

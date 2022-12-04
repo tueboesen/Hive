@@ -3,7 +3,7 @@ import typing
 import igraph as ig
 import torch
 
-from classes.const import PLAYER1_SEL, PLAYER2_SEL, BLUE, WHITE, BLACK, PLAYER1, PLAYER2, HEX_RADIUS, HEX_INNER_OUTER_SPACING
+from classes.const import PLAYER1_SEL, PLAYER2_SEL, BLUE, WHITE, BLACK, PLAYER1, PLAYER2, HEX_RADIUS, HEX_INNER_OUTER_SPACING, TEXT
 
 PieceType = int
 PIECE_TYPES = [QUEEN, BEETLE, GRASSHOPPER, SPIDER, ANT] = range(1,6)
@@ -49,7 +49,7 @@ class Piece:
         self._ui_color_fill = PLAYER1 if self.white else PLAYER2
         self._ui_color_inner_edge = BLACK
         self._ui_color_outer_edge = BLACK
-        self.ui_color_text = BLACK
+        self.ui_color_text = TEXT
         self.ui_color_text_bg = BLUE
 
         return

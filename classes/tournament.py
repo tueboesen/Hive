@@ -40,39 +40,40 @@ class Tournament:
 
 
     def championship(self):
+        pass
         # r1 (BLUE) r2 (RED)
-        r1, r2 = Rating(), Rating()
-
-        blue_mu, red_mu = [], []
-        blue_sigma, red_sigma = [], []
-
-        for _ in range(self.N_GAMES):
-            self.GAME_COUNT = _
-
-            # First half of the tournament played by one player
-            # Remaining half played by other player (see "no pie rule")
-            if self.GAME_COUNT < self.N_GAMES / 2:
-                blue_starts = True
-            if self.GAME_COUNT >= self.N_GAMES / 2:
-                blue_starts = False
-            winner = self.single_game(blue_starts=blue_starts)
-
-            if winner==1:
-                r1, r2 = rate_1vs1(r1, r2)
-            if winner==2:
-                r2, r1 = rate_1vs1(r2, r1)
-
-            blue_mu.append(r1.mu)
-            blue_sigma.append(r1.sigma)
-            red_mu.append(r2.mu)
-            red_sigma.append(r2.sigma)
-
-        df = pd.DataFrame.from_dict({"blue_mu": blue_mu, "red_mu": red_mu,
-                                     "blue_sigma": blue_sigma, "red_sigma": red_sigma})
-
-        data_path = "data"
-        if not os.path.exists(data_path):
-            os.makedirs(data_path)
-
-        with open(data_path + "\s{}-i{}-g{}.pkl".format(self.args[0], self.args[1], self.args[4]), "wb") as file:
-            pickle.dump(df, file)
+        # r1, r2 = Rating(), Rating()
+        #
+        # blue_mu, red_mu = [], []
+        # blue_sigma, red_sigma = [], []
+        #
+        # for _ in range(self.N_GAMES):
+        #     self.GAME_COUNT = _
+        #
+        #     # First half of the tournament played by one player
+        #     # Remaining half played by other player (see "no pie rule")
+        #     if self.GAME_COUNT < self.N_GAMES / 2:
+        #         blue_starts = True
+        #     if self.GAME_COUNT >= self.N_GAMES / 2:
+        #         blue_starts = False
+        #     winner = self.single_game(blue_starts=blue_starts)
+        #
+        #     if winner==1:
+        #         r1, r2 = rate_1vs1(r1, r2)
+        #     if winner==2:
+        #         r2, r1 = rate_1vs1(r2, r1)
+        #
+        #     blue_mu.append(r1.mu)
+        #     blue_sigma.append(r1.sigma)
+        #     red_mu.append(r2.mu)
+        #     red_sigma.append(r2.sigma)
+        #
+        # df = pd.DataFrame.from_dict({"blue_mu": blue_mu, "red_mu": red_mu,
+        #                              "blue_sigma": blue_sigma, "red_sigma": red_sigma})
+        #
+        # data_path = "data"
+        # if not os.path.exists(data_path):
+        #     os.makedirs(data_path)
+        #
+        # with open(data_path + "\s{}-i{}-g{}.pkl".format(self.args[0], self.args[1], self.args[4]), "wb") as file:
+        #     pickle.dump(df, file)
