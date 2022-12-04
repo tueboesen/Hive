@@ -5,7 +5,7 @@ from rich.logging import RichHandler
 
 FORMAT = "%(message)s"
 logging.basicConfig(level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()])
-
+logging.getLogger().setLevel(logging.INFO)
 from classes.tournament import Tournament
 
 
@@ -32,3 +32,4 @@ if __name__ == "__main__":
 
     args = BOARD_SIZE, ITERMAX, MODE, GAME_COUNT, N_GAMES
     main(args)
+

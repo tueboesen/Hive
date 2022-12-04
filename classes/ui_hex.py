@@ -127,13 +127,13 @@ class Hexagon(Hexes):
                          for _ in range(self.n)]
 
     def calculate_xy_inner(self, x, y):
-        self.xy_inner = [(x + self.hex_radius * cos(radians(90) + 2 * pi * _ / self.n),
-                          y + self.hex_radius * sin(radians(90) + 2 * pi * _ / self.n))
+        self.xy_inner = [(x + (self.hex_radius) * cos(radians(90) + 2 * pi * _ / self.n),
+                          y + (self.hex_radius) * sin(radians(90) + 2 * pi * _ / self.n))
                          for _ in range(self.n)]
 
     def calculate_xy_rect(self, x, y):
-        self.xy_rect = (x - self.hex_radius + self.offset, y - (self.hex_radius / 2),
-                        (self.hex_radius * 2) - (2 * self.offset), self.hex_radius)
+        self.xy_rect = (x - self.hex_radius + 3*self.offset, y - (self.hex_radius / 2),
+                        (self.hex_radius * 2) - (6 * self.offset), self.hex_radius)
 
 
     def move(self, x, y):

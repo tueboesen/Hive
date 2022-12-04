@@ -1,5 +1,6 @@
 import os
 import pickle
+import sys
 
 # Hide Pygame welcome message
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
@@ -29,6 +30,14 @@ class Tournament:
         game.get_game_info([self.MODE, self.GAME_COUNT])
         while not game.winner:
             game.play()
+
+        pygame.event.clear()
+        while True:
+            event = pygame.event.wait()
+            if event.type == pygame.QUIT or event.type == pygame.KEYDOWN:
+                pygame.quit()
+                sys.exit()
+
 
     def championship(self):
         # r1 (BLUE) r2 (RED)
