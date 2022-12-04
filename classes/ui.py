@@ -6,7 +6,7 @@ import torch
 from pygame import gfxdraw
 from pygame import time
 
-from classes.const import HEX_RADIUS, HEX_INNER_OUTER_SPACING
+from classes.const import HEX_RADIUS, HEX_INNER_OUTER_SPACING, ICON_SIZE
 from classes.hive import Hive, Piece
 from classes.ui_hex import Hexes
 

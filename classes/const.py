@@ -1,7 +1,13 @@
+import torch
+
+DIRECTIONS = torch.as_tensor([[-1, 0], [1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]])
+
+
 # Hexes
-HEX_RADIUS = 40
+HEX_RADIUS = 30
 HEX_INNER_OUTER_SPACING = 4
 
+ICON_SIZE = (round(1.5*HEX_RADIUS),round(1.5*HEX_RADIUS))
 
 
 # Colors

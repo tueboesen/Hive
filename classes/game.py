@@ -11,6 +11,12 @@ from classes.ui import UI
 
 GAME_MODES = ["cpu_vs_cpu",'man_vs_cpu','man_vs_man']
 
+
+a = torch.ones([4,4])
+b = a[2,3]
+idx = torch.tensor([2,3])
+c = a[idx]
+
 class Game:
     def __init__(self, mode):
         if mode not in GAME_MODES:

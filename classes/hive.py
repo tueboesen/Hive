@@ -1,9 +1,13 @@
 import itertools
+import operator
 import typing
+from os.path import exists
+
 import igraph as ig
+import pygame
 import torch
 
-from classes.const import PLAYER1_SEL, PLAYER2_SEL, BLUE, WHITE, BLACK, PLAYER1, PLAYER2, HEX_RADIUS, HEX_INNER_OUTER_SPACING, TEXT
+from classes.const import PLAYER1_SEL, PLAYER2_SEL, BLUE, WHITE, BLACK, PLAYER1, PLAYER2, HEX_RADIUS, HEX_INNER_OUTER_SPACING, TEXT, DIRECTIONS, ICON_SIZE
 
 PieceType = int
 PIECE_TYPES = [QUEEN, BEETLE, GRASSHOPPER, SPIDER, ANT] = range(1,6)
@@ -11,11 +15,13 @@ PIECE_TYPES = [QUEEN, BEETLE, GRASSHOPPER, SPIDER, ANT] = range(1,6)
 PIECE_SYMBOLS = ["q", "b", "g", "s", "a"]
 PIECE_NAMES = ["queen", "beetle", "grasshopper", "spider", "ant"]
 
-PIECES_PER_PLAYER = ["q","b","b","b"]
+PIECES_PER_PLAYER = ["q",'b','b','s','s','g','g','g','a','a','a']
+ICONS = ['./icons/bee.png','./icons/beetle.png','./icons/grasshopper.png','./icons/spider.png','./icons/ant.png']
 
 
-
-
+# filename = './icons/bee.png'
+# picture = pygame.image.load(filename)
+# picture = pygame.transform.scale(picture, ICON_SIZE)
 
 
 def piece_symbol(piece_type: PieceType) -> str:
@@ -39,7 +45,8 @@ class Piece:
         self.piece_type = piece_type
         self.moves = None
         self._calculate_moves = eval(f"self._moves_{piece_name(piece_type)}")
-        self.pieces_under = 0
+        self.pieces_under = []
+        self.icon = None
 
         self.ui_hex_radius = HEX_RADIUS
         self.ui_hex_ios = HEX_INNER_OUTER_SPACING-1
@@ -52,7 +59,17 @@ class Piece:
         self.ui_color_text = TEXT
         self.ui_color_text_bg = BLUE
 
+        self.load_icon()
+
         return
+
+    def load_icon(self):
+        filename = ICONS[self.piece_type]
+        if exists(filename):
+            icon = pygame.image.load(filename)
+            self.icon = pygame.transform.scale(icon, ICON_SIZE)
+        else:
+            self.icon = None
 
     def pos(self):
         return self.x,self.y
@@ -95,18 +112,143 @@ class Piece:
         return moves
 
     def _moves_beetle(self, board_all):
+        """
+        TODO a beetle can't move into a chokepoint if it isn't on a higher position already or going to a higher position
+        :param board_all:
+        :return:
+        """
         bs = board_all.shape[0]
         if self.level == 0:
             moves = self.bitmap(bs,self.y+1,self.x+1)
             moves = self.bitmap_get_neighbors(moves)
-            if self.pieces_under == 0:
+            if len(self.pieces_under) == 0:
                 board_connected = self.bitmap_of_connected_graph_positions(board_all)
                 moves = moves & board_connected # Only moves next to other pieces
         else:
             moves = None
         return moves
 
-    def bitmap(self,size,row,col):
+    def _moves_grasshopper(self, board_all):
+        """
+        Grasshopper: jumps over a line of pieces.
+        The grasshopper picks a direction, then jumps in that direction, landing on the first empty space.
+        It must jump over at least one piece (of either color, which may also be a grasshopper).
+        :param board_all:
+        :return:
+        """
+        if self.level == 0:
+            origo = torch.as_tensor([self.y+1, self.x+1])
+            directions = torch.as_tensor([[-1, 0], [1, 0], [0, 1], [0, -1], [1, -1], [-1, 1]])
+            moves = self.bitmap(board_all.shape[0])
+            for i in range(directions.shape[0]):
+                direction = directions[i]
+                j = 1
+                idx = origo + direction * j
+                if not board_all[idx[0],idx[1]]:
+                    continue
+                while True:
+                    j += 1
+                    idx = origo + direction * j
+                    if not board_all[idx[0],idx[1]]:
+                        moves[idx[0],idx[1]] = True
+                        break
+        else:
+            moves = None
+        return moves
+
+
+    def _moves_spider(self, board_all):
+        """
+        :param board_all:
+        :return:
+        """
+        if self.level == 0:
+            origo = torch.as_tensor([self.y+1, self.x+1])
+            moves = self.bitmap(board_all.shape[0])
+            board = board_all.clone()
+            board[origo[0],origo[1]] = False
+            move_indices_hist = self.move_spider_one(board, [tuple(origo.tolist())])
+            for move_idx_hist in move_indices_hist:
+                move = move_idx_hist[-1]
+                moves[move[0],move[1]] = True
+        else:
+            moves = None
+        return moves
+
+    def move_spider_one(self,board_without_spider,spider_hist):
+        spider_pos = spider_hist[-1]
+        move_indices = []
+        nn_origo = []
+        for i in range(6):
+            direction = DIRECTIONS[i]
+            idx = (torch.as_tensor(spider_pos) + direction).tolist()
+            if board_without_spider[idx[0],idx[1]]:
+                nn_origo.append((idx[0],idx[1]))
+            elif (idx[0],idx[1]) not in spider_hist:  # The position is open and not part of the move history
+                move_indices.append((idx[0],idx[1]))
+        for move in list(move_indices):
+            nn_move = []
+            for i in range(6):
+                direction = DIRECTIONS[i]
+                idx = (torch.as_tensor(move) + direction).tolist()
+                if board_without_spider[idx[0],idx[1]]:
+                    nn_move.append((idx[0],idx[1]))
+            if not set(nn_move).intersection(nn_origo): # Are we walking around a piece? Meaning does our end and start position share a neighbour that exist?
+                move_indices.remove(move)
+        move_indices = self.remove_chokepoint_move_indices(move_indices, spider_pos[0], spider_pos[1], board_without_spider)
+
+        spider_hist_all = []
+        for move in move_indices:
+            spider_hist_new = list(spider_hist)
+            spider_hist_new.append(move)
+            if len(spider_hist_new) < 4:
+                spider_hist_all += self.move_spider_one(board_without_spider,spider_hist_new)
+            else:
+                spider_hist_all.append(spider_hist_new)
+        return spider_hist_all
+
+    def _moves_ant(self, board_all):
+        """
+        :param board_all:
+        :return:
+        """
+        if self.level == 0:
+            origo = (self.y + 1, self.x + 1)
+            moves = self.bitmap(board_all.shape[0])
+            board = board_all.clone()
+            board[origo[0], origo[1]] = False
+            board_nn = self.bitmap_get_neighbors(board)
+            move_idx_set = self.move_ant_one(board, board_nn, origo, set())
+            move_idx_set.remove(origo)
+            move_idx_list = list(move_idx_set)
+            for move_idx in move_idx_list:
+                moves[move_idx[0], move_idx[1]] = True
+        else:
+            moves = None
+        return moves
+
+
+    def move_ant_one(self, board_without_ant, board_without_ant_nn, position, move_set):
+        move_indices = []
+        for i in range(6):
+            direction = DIRECTIONS[i]
+            idx = (torch.as_tensor(position) + direction).tolist()
+            if not board_without_ant[idx[0],idx[1]] \
+                    and board_without_ant_nn[idx[0],idx[1]] \
+                    and (idx[0],idx[1]) not in move_set:  # The position is open and is neighbor to another piece and not part of the move history
+                move_indices.append((idx[0],idx[1]))
+        move_indices = self.remove_chokepoint_move_indices(move_indices, position[0], position[1], board_without_ant)
+        moves_to_check = []
+        for move in move_indices:
+            if move not in move_set:
+                moves_to_check.append(move)
+                move_set.add(move)
+        for move in moves_to_check:
+            move_set = self.move_ant_one(board_without_ant,board_without_ant_nn,move,move_set)
+        return move_set
+
+
+    def bitmap(self,size,row=None,col=None):
         """
         Creates a Tensor bitmap board and inserts True on the (row,col) position
         :param size:
@@ -115,7 +257,8 @@ class Piece:
         :return:
         """
         board_state = torch.zeros(size,size,dtype=torch.bool)
-        board_state[row,col] = True
+        if row is not None and col is not None:
+            board_state[row,col] = True
         return board_state
     def bitmap_get_neighbors(self, board):
         board1 = torch.roll(board,1,dims=0)
@@ -126,6 +269,20 @@ class Piece:
         board6 = torch.roll(board3,1,dims=1)
         board_nn = board1 | board2 | board3 | board4 | board5 | board6
         return board_nn
+
+    def remove_chokepoint_move_indices(self,move_indices,row,col,board_all):
+        bs = board_all.shape[0]
+        bit_nn_piece = self.bitmap_get_neighbors(self.bitmap(bs,row,col))
+        for row_move, col_move in list(move_indices):
+            bit_nn_move = self.bitmap_get_neighbors(self.bitmap(bs, row_move, col_move))
+            bit_choke_pos = bit_nn_piece & bit_nn_move
+            bit_colisions = board_all & bit_choke_pos
+            if bit_colisions.sum() == 2:
+                move_indices.remove((row_move,col_move))
+        return move_indices
+
+
+
 
     def remove_chokepoint_moves(self,moves,row,col,board_all):
         bs = board_all.shape[0]
@@ -305,14 +462,16 @@ class HiveGame:
         :param y_dst:
         :return:
         """
-        pieces_lowered = 0
+        pieces_lowered = []
         for hive in self.hives:
             for piece in hive:
                 if piece.x == x_org and piece.y == y_org and piece.level < 0:
                     piece.level += 1
                 elif piece.x == x_dst and piece.y == y_dst:
                     piece.level -= 1
-                    pieces_lowered += 1
+                    pieces_lowered.append(piece)
+        keyfun = operator.attrgetter("level")
+        pieces_lowered.sort(key=keyfun)
         return pieces_lowered
 
     def move_piece(self,idx:int,x:int,y:int):
@@ -394,7 +553,7 @@ class HiveGame:
             if hive_player.played_piece:
                 board1 = self.get_neighboring_pos(board_state_player)
                 board2 = self.get_neighboring_pos(board_state_opp)
-                spawn_locations = board1 & (~ (board2 | board_state_opp))
+                spawn_locations = board1 & (~ (board2 | board_state_opp)) & ~ board_state_player
             else:
                 if hive_opp.played_piece:
                     spawn_locations = self.get_neighboring_pos(board_state_opp)
@@ -416,7 +575,7 @@ class HiveGame:
             for piece in hive_player:
                 if piece.in_play is False:
                     piece.moves = spawn_locations
-                elif piece.level == 0  and ([piece.y,piece.x] in moveable_positions or piece.pieces_under > 0):
+                elif piece.level == 0  and ([piece.y,piece.x] in moveable_positions or len(piece.pieces_under) > 0):
                     piece.moves = piece.calculate_moves(self.board_state)
                 else:
                     piece.moves = None

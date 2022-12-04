@@ -1,6 +1,6 @@
 from math import cos, sin, pi, radians
 
-from classes.const import WHITE, BLACK, BLUE
+from classes.const import WHITE, BLACK, BLUE, ICON_SIZE
 from classes.hive import Hive, Piece, HiveGame
 import pygame
 from pygame import gfxdraw
@@ -45,8 +45,29 @@ def draw(self):
         gfxdraw.filled_polygon(self.ui_screen, self.ui_xy_inner(), self.ui_color_fill) # Inner filled hexagon
         gfxdraw.aapolygon(self.ui_screen, self.ui_xy_inner(), self.ui_color_inner_edge) # Inner hexagon edge
 
-        if self.symbol() is not None:
-            text = pygame.font.SysFont("Sans", 18).render(f"{self.symbol() if self.pieces_under==0 else self.symbol()+'+'+str(self.pieces_under)}", True, self.ui_color_text) #, self.ui_color_text_bg
+        if self.icon is not None:
+            rect = self.icon.get_rect()
+            pieces = len(self.pieces_under)
+            if pieces > 0:
+                icons_to_draw = pieces + 1
+                dx = ICON_SIZE[0] / icons_to_draw/2
+                for i,piece in enumerate(self.pieces_under):
+                    icon = piece.icon
+                    icon = pygame.transform.scale(icon, (ICON_SIZE[0]/2,ICON_SIZE[1]/2))
+                    rect_under = icon.get_rect()
+                    rect_under.center = (self.ui_x()+int(ICON_SIZE[0]/4 - i*dx), self.ui_y())
+                    self.ui_screen.blit(icon, rect_under)
+
+                icon = pygame.transform.scale(self.icon, (ICON_SIZE[0]/2,ICON_SIZE[1]/2))
+                rect.center = (self.ui_x()-int(ICON_SIZE[0]/4), self.ui_y())
+                self.ui_screen.blit(icon, rect)
+
+
+            else:
+                rect.center = (self.ui_x(), self.ui_y())
+                self.ui_screen.blit(self.icon, rect)
+        elif self.symbol() is not None:
+            text = pygame.font.SysFont("Sans", 18).render(f"{self.symbol() if len(self.pieces_under)==0 else self.symbol()+'+'+str(self.pieces_under)}", True, self.ui_color_text) #, self.ui_color_text_bg
             text_rect = text.get_rect()
             text_rect.center = (self.ui_x(), self.ui_y())
             self.ui_screen.blit(text, text_rect)
