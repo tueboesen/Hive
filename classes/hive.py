@@ -641,16 +641,10 @@ class HiveGame:
         return g,node_indices
 
     def find_moveable_nodes(self,g):
-        edges = torch.as_tensor(g.get_edgelist())
         nodes = g.vcount()
-        bridges = g.bridges()
-        degrees = g.degree()
-        bridge_nodes = edges[bridges].unique().tolist()
-        leaf_nodes = [i for i,degree in enumerate(degrees) if degree==1]
-        moveable_node_indices = set(range(nodes)).difference(bridge_nodes)
-        moveable_node_indices.update(leaf_nodes)
+        articulation_points = g.articulation_points()
+        moveable_node_indices = set(range(nodes)).difference(articulation_points)
         return list(moveable_node_indices)
-
 
     def offset_to_axial(self,hexes:torch.Tensor):
         n_nodes,_ = hexes.shape

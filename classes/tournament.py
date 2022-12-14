@@ -8,8 +8,7 @@ import pygame
 
 from classes.game import Game
 
-import pandas as pd
-from trueskill import Rating, rate_1vs1
+# from trueskill import Rating, rate_1vs1
 
 
 class Tournament:
